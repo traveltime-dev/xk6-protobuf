@@ -1,0 +1,22 @@
+{
+  "countries": [
+    {
+      "name": "United States",
+      "area": 9833520,
+      "population": 332915073,
+      "capital": "Washington, D.C."
+    },
+    {
+      "name": "Germany",
+      "area": 357022,
+      "population": 83149300,
+      "capital": "Berlin"
+    },
+    {
+      "name": "Japan",
+      "area": 377975,
+      "population": 126050804,
+      "capital": "Tokyo"
+    }
+  ]
+}

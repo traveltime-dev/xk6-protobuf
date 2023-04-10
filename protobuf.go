@@ -1,7 +1,6 @@
 package protobuf
 
 import (
-	"encoding/base64"
 	"github.com/jhump/protoreflect/desc/protoparse"
 	"google.golang.org/protobuf/encoding/protojson"
 	"log"
@@ -17,21 +16,24 @@ func init() {
 	modules.Register("k6/x/protobuf", new(Protobuf))
 }
 
-type Protobuf struct {
+type Protobuf struct{}
+
+type ProtoFile struct {
 	messageDesc protoreflect.MessageDescriptor
 }
 
-func NewProtobuf(protoFilePath string) *Protobuf {
+func (p *Protobuf) Load(protoFilePath, lookupType string) ProtoFile {
 	// Read the .proto file directly
 	parser := protoparse.Parser{}
 	fileDesc, err := parser.ParseFiles(protoFilePath)
+
 	if err != nil {
+
 		log.Fatal(err)
 	}
 
 	// Convert the *desc.FileDescriptor to *descriptorpb.FileDescriptorProto
 	schema := fileDesc[0].AsFileDescriptorProto()
-
 	// Convert the FileDescriptorProto to a protoreflect.FileDescriptor
 	fd, err := protodesc.NewFile(schema, nil)
 	if err != nil {
@@ -39,12 +41,10 @@ func NewProtobuf(protoFilePath string) *Protobuf {
 	}
 
 	// Get the message descriptor
-	messageDesc := fd.Messages().ByName("Example")
-
-	return &Protobuf{messageDesc: messageDesc}
+	return ProtoFile{fd.Messages().ByName(protoreflect.Name(lookupType))}
 }
 
-func (p *Protobuf) Encode(data string) string {
+func (p *ProtoFile) Encode(data string) []byte {
 	dynamicMessage := dynamicpb.NewMessage(p.messageDesc)
 
 	err := protojson.Unmarshal([]byte(data), dynamicMessage)
@@ -58,19 +58,14 @@ func (p *Protobuf) Encode(data string) string {
 		log.Fatal(err)
 	}
 
-	encodedString := base64.StdEncoding.EncodeToString(encodedBytes)
-	return encodedString
+	return encodedBytes
 }
 
-func (p *Protobuf) Decode(data string) string {
-	decodedBytes, err := base64.StdEncoding.DecodeString(data)
-	if err != nil {
-		log.Fatal(err)
-	}
+func (p *ProtoFile) Decode(decodedBytes []byte) string {
 
 	decodedMessage := dynamicpb.NewMessage(p.messageDesc)
 
-	err = proto.Unmarshal(decodedBytes, decodedMessage)
+	err := proto.Unmarshal(decodedBytes, decodedMessage)
 	if err != nil {
 		log.Fatal(err)
 	}
