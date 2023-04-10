@@ -1,4 +1,4 @@
-# xk6-ssh
+# xk6-protobuf
 A k6 extension for decoding and encoding proto files. Built using [xk6](https://github.com/grafana/xk6).
 
 ## Build
