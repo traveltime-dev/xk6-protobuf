@@ -5,7 +5,7 @@ go 1.20
 require (
 	github.com/golang/protobuf v1.5.3
 	go.k6.io/k6 v0.43.1
-	google.golang.org/protobuf v1.28.1
+	google.golang.org/protobuf v1.31.0
 )
 
 require (
