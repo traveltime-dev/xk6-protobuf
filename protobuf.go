@@ -10,6 +10,7 @@ import (
 	"google.golang.org/protobuf/proto"
 	"google.golang.org/protobuf/reflect/protodesc"
 	"google.golang.org/protobuf/reflect/protoreflect"
+	"google.golang.org/protobuf/reflect/protoregistry"
 	"google.golang.org/protobuf/types/dynamicpb"
 )
 
@@ -36,7 +37,7 @@ func (p *Protobuf) Load(protoFilePath, lookupType string) ProtoFile {
 	// Convert the *desc.FileDescriptor to *descriptorpb.FileDescriptorProto
 	schema := fileDesc[0].AsFileDescriptorProto()
 	// Convert the FileDescriptorProto to a protoreflect.FileDescriptor
-	fd, err := protodesc.NewFile(schema, nil)
+	fd, err := protodesc.NewFile(schema, protoregistry.GlobalFiles)
 	if err != nil {
 		log.Fatal(err)
 	}
