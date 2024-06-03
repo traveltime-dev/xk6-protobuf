@@ -1,9 +1,10 @@
 package protobuf
 
 import (
+	"log"
+
 	"github.com/jhump/protoreflect/desc/protoparse"
 	"google.golang.org/protobuf/encoding/protojson"
-	"log"
 
 	"go.k6.io/k6/js/modules"
 	"google.golang.org/protobuf/proto"
