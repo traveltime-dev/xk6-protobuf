@@ -1,6 +1,6 @@
 syntax = "proto3";
 
-package country.v1;
+package example.v1;
 
 message Country {
     string name = 1;
