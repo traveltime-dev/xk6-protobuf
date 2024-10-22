@@ -32,6 +32,12 @@ func (p *Protobuf) Load(protoFilePath, lookupType string) ProtoFile {
 	if err != nil {
 		log.Fatal(err)
 	}
+	if files == nil {
+		log.Fatal("No files were passed as arguments")
+	}
+	if len(files) == 0 {
+		log.Fatal("Zero files were parsed")
+	}
 
 	return ProtoFile{files[0].Messages().ByName(protoreflect.Name(lookupType))}
 }
