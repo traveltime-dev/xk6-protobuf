@@ -1,0 +1,9 @@
+syntax = "proto3";
+
+package country.v1;
+
+import "country/v1/country.proto";
+
+message CountryList {
+    repeated Country countries = 1;
+}
