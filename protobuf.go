@@ -1,16 +1,15 @@
 package protobuf
 
 import (
+	"context"
 	"log"
 
-	"github.com/jhump/protoreflect/desc/protoparse"
+	"github.com/bufbuild/protocompile"
 	"google.golang.org/protobuf/encoding/protojson"
 
 	"go.k6.io/k6/js/modules"
 	"google.golang.org/protobuf/proto"
-	"google.golang.org/protobuf/reflect/protodesc"
 	"google.golang.org/protobuf/reflect/protoreflect"
-	"google.golang.org/protobuf/reflect/protoregistry"
 	"google.golang.org/protobuf/types/dynamicpb"
 )
 
@@ -25,25 +24,22 @@ type ProtoFile struct {
 }
 
 func (p *Protobuf) Load(protoFilePath, lookupType string) ProtoFile {
-	// Read the .proto file directly
-	parser := protoparse.Parser{}
-	fileDesc, err := parser.ParseFiles(protoFilePath)
-
-	if err != nil {
-
-		log.Fatal(err)
+	compiler := protocompile.Compiler{
+		Resolver: &protocompile.SourceResolver{},
 	}
 
-	// Convert the *desc.FileDescriptor to *descriptorpb.FileDescriptorProto
-	schema := fileDesc[0].AsFileDescriptorProto()
-	// Convert the FileDescriptorProto to a protoreflect.FileDescriptor
-	fd, err := protodesc.NewFile(schema, protoregistry.GlobalFiles)
+	files, err := compiler.Compile(context.Background(), protoFilePath)
 	if err != nil {
 		log.Fatal(err)
 	}
+	if files == nil {
+		log.Fatal("No files were passed as arguments")
+	}
+	if len(files) == 0 {
+		log.Fatal("Zero files were parsed")
+	}
 
-	// Get the message descriptor
-	return ProtoFile{fd.Messages().ByName(protoreflect.Name(lookupType))}
+	return ProtoFile{files[0].Messages().ByName(protoreflect.Name(lookupType))}
 }
 
 func (p *ProtoFile) Encode(data string) []byte {
