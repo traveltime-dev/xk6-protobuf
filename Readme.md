@@ -52,4 +52,4 @@ Replace `{proto-benchmark-file}.js` with the actual file name of your protobuf b
 ## Examples
 
 Command to run examples:
-```./k6 run examples/codec.js```
+```./k6 run example/codec.js```
