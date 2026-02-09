@@ -2,7 +2,7 @@ package protobuf
 
 import (
 	"context"
-	"log"
+	"errors"
 
 	"github.com/bufbuild/protocompile"
 	"google.golang.org/protobuf/encoding/protojson"
@@ -23,7 +23,11 @@ type ProtoFile struct {
 	messageDesc protoreflect.MessageDescriptor
 }
 
-func (p *Protobuf) Load(protoFilePath string, importPaths []string, lookupType string) ProtoFile {
+func (p *Protobuf) Load(protoFilePath string, lookupType string) (*ProtoFile, error) {
+	return p.LoadWithPath(protoFilePath, []string{}, lookupType)
+}
+
+func (p *Protobuf) LoadWithPath(protoFilePath string, importPaths []string, lookupType string) (*ProtoFile, error) {
 	compiler := protocompile.Compiler{
 		Resolver: &protocompile.SourceResolver{
 			ImportPaths: importPaths,
@@ -32,42 +36,42 @@ func (p *Protobuf) Load(protoFilePath string, importPaths []string, lookupType s
 
 	files, err := compiler.Compile(context.Background(), protoFilePath)
 	if err != nil {
-		log.Print(err)
+		return nil, err
 	}
 	if files == nil {
-		log.Print("No files were passed as arguments")
+		return nil, errors.New("No files were passed as arguments")
 	}
 	if len(files) == 0 {
-		log.Print("Zero files were parsed")
+		return nil, errors.New("Zero files were parsed")
 	}
 
-	return ProtoFile{files[0].Messages().ByName(protoreflect.Name(lookupType))}
+	return &ProtoFile{files[0].Messages().ByName(protoreflect.Name(lookupType))}, nil
 }
 
-func (p *ProtoFile) Encode(data string) []byte {
+func (p *ProtoFile) Encode(data string) ([]byte, error) {
 	dynamicMessage := dynamicpb.NewMessage(p.messageDesc)
 
 	err := protojson.Unmarshal([]byte(data), dynamicMessage)
 
 	if err != nil {
-		log.Fatal(err)
+		return nil, err
 	}
 
 	encodedBytes, err := proto.Marshal(dynamicMessage)
 	if err != nil {
-		log.Fatal(err)
+		return nil, err
 	}
 
-	return encodedBytes
+	return encodedBytes, nil
 }
 
-func (p *ProtoFile) Decode(decodedBytes []byte) string {
+func (p *ProtoFile) Decode(decodedBytes []byte) (string, error) {
 
 	decodedMessage := dynamicpb.NewMessage(p.messageDesc)
 
 	err := proto.Unmarshal(decodedBytes, decodedMessage)
 	if err != nil {
-		log.Fatal(err)
+		return "", err
 	}
 
 	marshalOptions := protojson.MarshalOptions{
@@ -76,8 +80,8 @@ func (p *ProtoFile) Decode(decodedBytes []byte) string {
 
 	jsonString, err := marshalOptions.Marshal(decodedMessage)
 	if err != nil {
-		log.Fatal(err)
+		return "", err
 	}
 
-	return string(jsonString)
+	return string(jsonString), nil
 }
