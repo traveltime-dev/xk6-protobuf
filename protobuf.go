@@ -2,6 +2,7 @@ package protobuf
 
 import (
 	"context"
+	"encoding/base64"
 	"log"
 	"path/filepath"
 	"strings"
@@ -108,7 +109,7 @@ func (p *Protobuf) Load(protoFilePath, lookupType string, importPaths ...string)
 	return ProtoFile{messageDesc}
 }
 
-func (p *ProtoFile) Encode(data string) string {
+func (p *ProtoFile) marshal(data string) []byte {
 	dynamicMessage := dynamicpb.NewMessage(p.messageDesc)
 
 	err := protojson.Unmarshal([]byte(data), dynamicMessage)
@@ -122,7 +123,18 @@ func (p *ProtoFile) Encode(data string) string {
 		log.Fatal(err)
 	}
 
-	return string(encodedBytes)
+	return encodedBytes
+}
+
+func (p *ProtoFile) Encode(data string) string {
+	return string(p.marshal(data))
+}
+
+// EncodeBase64 returns the encoded message as base64. Encode's raw bytes only
+// survive direct use (e.g. http.post); any JS-side round-trip such as
+// SharedArray storage corrupts them, so store this and b64decode per use.
+func (p *ProtoFile) EncodeBase64(data string) string {
+	return base64.StdEncoding.EncodeToString(p.marshal(data))
 }
 
 func (p *ProtoFile) Decode(decodedBytes []byte) string {
