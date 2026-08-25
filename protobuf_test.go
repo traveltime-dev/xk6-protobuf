@@ -1,6 +1,7 @@
 package protobuf
 
 import (
+	"encoding/base64"
 	"encoding/json"
 	"path/filepath"
 	"testing"
@@ -76,5 +77,30 @@ func TestEncodeAndDecode(t *testing.T) {
 	}
 	if result["capital"] != original["capital"] {
 		t.Errorf("capital mismatch: got %v, want %v", result["capital"], original["capital"])
+	}
+}
+
+func TestEncodeBase64(t *testing.T) {
+	p := &Protobuf{}
+	pf := p.Load("example/v1/country.proto", "Country")
+
+	input := `{"name":"Poland","area":312696,"population":38000000,"capital":"Warsaw"}`
+	raw, err := base64.StdEncoding.DecodeString(pf.EncodeBase64(input))
+	if err != nil {
+		t.Fatalf("EncodeBase64 output is not valid base64: %v", err)
+	}
+
+	// Field order on the wire is not deterministic, so compare decoded content.
+	var original, result map[string]interface{}
+	if err := json.Unmarshal([]byte(input), &original); err != nil {
+		t.Fatalf("failed to parse input JSON: %v", err)
+	}
+	if err := json.Unmarshal([]byte(pf.Decode(raw)), &result); err != nil {
+		t.Fatalf("failed to parse decoded JSON: %v", err)
+	}
+	for _, field := range []string{"name", "capital"} {
+		if result[field] != original[field] {
+			t.Errorf("%s mismatch: got %v, want %v", field, result[field], original[field])
+		}
 	}
 }
