@@ -31,7 +31,7 @@ go install go.k6.io/xk6/cmd/xk6@latest
 Build the K6 binary with the `xk6-protobuf` extension:
 
 ```bash
-xk6 build --with github.com/traveltime-dev/xk6-protobuf@latest
+xk6 build v1.8.2 --with github.com/traveltime-dev/xk6-protobuf@latest
 ```
 
 If you want to build it locally, then clone this repository and use:
